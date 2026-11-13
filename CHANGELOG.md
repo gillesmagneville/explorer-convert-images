@@ -15,11 +15,11 @@ GitHub are taken from it (see "Publishing a release" in `CONTRIBUTING.md`).
 
 ## [Unreleased]
 
-## 2026-11-13 — v0.1.0
+## 2026-11-13 — v1.0.0
 
-First skeleton of the project (version 0.1.0 in the `VERSION` file): the
-Windows counterpart of nautilus-convert-images, as three programs, an
-installer and a build workflow.
+First release of the project: the Windows counterpart of
+nautilus-convert-images, as three programs, an installer and a build
+workflow.
 
 ### Added
 
@@ -67,6 +67,17 @@ installer and a build workflow.
   of the window; and a start-up check — the window opens and stays open,
   started directly and through the menu handler (the COM object) the way
   File Explorer does it.
-- **Not verified yet**: the installer and the menu entry used from File
-  Explorer itself on a real machine (on Windows 11, the entry is under
-  "Show more options").
+- Verified by hand on Windows 11: the installer; the menu entry used from
+  File Explorer itself (on one image, on several, on a folder and on the
+  background of a folder); the conversions; the uninstallation.
+- **Not verified**: Windows 10, and Windows on ARM (where the programs run
+  through the emulation built into Windows 11). The Spanish and German
+  translations have not been reviewed by native speakers.
+
+### Known limitations
+
+- On Windows 11, the entry is in the classic menu (**Show more options**,
+  or Shift + right-click). Appearing in the first-level menu requires a
+  signed package with an identity, which the project does not provide yet.
+- The installer is not code-signed: Windows or the browser may show a
+  warning about an unknown publisher when it is downloaded or started.

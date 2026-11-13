@@ -19,14 +19,12 @@ explorer-convert-images is the Windows counterpart of
 (the same tool for GNOME Files, on Linux): same conversion engine, same
 texts, behind a native Windows window.
 
-> **Status: first skeleton (0.1.0), not yet tried on a real Windows
-> machine.** What has been checked so far, on Linux: the engine and the menu
-> handler (their tests pass natively, and as Windows programs under Wine),
-> the logic of the window (its tests pass against the real engine), and the
-> installer (install, upgrade and uninstall under Wine). What has **not**:
-> the window itself — it can only be built on Windows, which the GitHub
-> Actions workflow of this repository does — and the entry in File
-> Explorer's menu on a real Windows. See [CHANGELOG.md](CHANGELOG.md).
+> **Status: version 1.0.0.** Tried by hand on Windows 11 — installation,
+> menu entry (on files, folders and the background of a folder),
+> conversions, uninstallation — and checked on a real Windows by the GitHub
+> Actions workflow of this repository, which builds the three programs and
+> the installer on every change. **Not tried yet**: Windows 10 and Windows
+> on ARM. See [CHANGELOG.md](CHANGELOG.md).
 
 > **Note:** the user interface is available in **English, French, Spanish
 > and German** (see [Languages](#languages)). The other documents

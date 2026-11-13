@@ -16,11 +16,11 @@ sur GitHub en sont tirées (voir « Publier une version » dans
 
 ## [Non publié]
 
-## 2026-11-13 — v0.1.0
+## 2026-11-13 — v1.0.0
 
-Premier squelette du projet (version 0.1.0 dans le fichier `VERSION`) : le
-pendant Windows de nautilus-convert-images, sous la forme de trois
-programmes, d'un installeur et d'un workflow de construction.
+Première version du projet : le pendant Windows de nautilus-convert-images,
+sous la forme de trois programmes, d'un installeur et d'un workflow de
+construction.
 
 ### Ajouté
 
@@ -72,6 +72,19 @@ programmes, d'un installeur et d'un workflow de construction.
   fenêtre s'ouvre et reste ouverte, lancée directement et par le
   gestionnaire de menu (l'objet COM) comme le fait l'Explorateur de
   fichiers.
-- **Pas encore vérifié** : l'installeur et l'entrée de menu utilisés depuis
-  l'Explorateur de fichiers lui-même, sur une vraie machine (sous Windows
-  11, l'entrée est dans « Afficher plus d'options »).
+- Vérifié à la main sous Windows 11 : l'installeur ; l'entrée de menu
+  utilisée depuis l'Explorateur de fichiers lui-même (sur une image, sur
+  plusieurs, sur un dossier et sur le fond d'un dossier) ; les conversions ;
+  la désinstallation.
+- **Non vérifié** : Windows 10, et Windows sur ARM (où les programmes
+  tournent grâce à l'émulation intégrée à Windows 11). Les traductions
+  espagnole et allemande n'ont pas été relues par des locuteurs natifs.
+
+### Limites connues
+
+- Sous Windows 11, l'entrée est dans le menu classique (**Afficher plus
+  d'options**, ou Maj + clic droit). Apparaître dans le menu de premier
+  niveau demande un paquet signé et doté d'une identité, ce que le projet
+  ne fournit pas encore.
+- L'installeur n'est pas signé : Windows ou le navigateur peut afficher un
+  avertissement d'éditeur inconnu au téléchargement ou au lancement.
