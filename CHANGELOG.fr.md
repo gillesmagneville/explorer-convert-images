@@ -16,6 +16,8 @@ sur GitHub en sont tirées (voir « Publier une version » dans
 
 ## [Non publié]
 
+## 2026-11-13 — v0.1.0
+
 Premier squelette du projet (version 0.1.0 dans le fichier `VERSION`) : le
 pendant Windows de nautilus-convert-images, sous la forme de trois
 programmes, d'un installeur et d'un workflow de construction.
@@ -64,7 +66,12 @@ programmes, d'un installeur et d'un workflow de construction.
   fichiers aux noms accentués, l'objet COM, ainsi que l'enregistrement et le
   retrait des entrées de menu) ; l'installeur sous Wine (installation, mise
   à jour, refus d'un dossier qui n'est pas le nôtre, désinstallation).
-- **Pas encore vérifié** : la fenêtre n'a jamais été compilée ni lancée —
-  elle ne se construit que sous Windows, ce que fait le workflow ; et
-  l'entrée de menu n'a jamais été utilisée depuis l'Explorateur de fichiers
-  sur un vrai Windows.
+- Vérifié sur un vrai Windows, par le workflow de construction : les tests
+  C# avec le moteur Windows ; les tests du gestionnaire de menu propres à
+  Windows ; la construction de la fenêtre ; et un contrôle du démarrage — la
+  fenêtre s'ouvre et reste ouverte, lancée directement et par le
+  gestionnaire de menu (l'objet COM) comme le fait l'Explorateur de
+  fichiers.
+- **Pas encore vérifié** : l'installeur et l'entrée de menu utilisés depuis
+  l'Explorateur de fichiers lui-même, sur une vraie machine (sous Windows
+  11, l'entrée est dans « Afficher plus d'options »).

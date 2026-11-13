@@ -15,6 +15,8 @@ GitHub are taken from it (see "Publishing a release" in `CONTRIBUTING.md`).
 
 ## [Unreleased]
 
+## 2026-11-13 — v0.1.0
+
 First skeleton of the project (version 0.1.0 in the `VERSION` file): the
 Windows counterpart of nautilus-convert-images, as three programs, an
 installer and a build workflow.
@@ -60,6 +62,11 @@ installer and a build workflow.
   accented names, the COM object, and the registration and removal of the
   menu entries); the installer under Wine (installation, upgrade, refusal
   of a folder that is not ours, uninstallation).
-- **Not verified yet**: the window has never been compiled nor run — it can
-  only be built on Windows, which the workflow does; and the menu entry has
-  never been used from File Explorer on a real Windows.
+- Verified on a real Windows, by the build workflow: the C# tests against
+  the Windows engine; the Windows-only tests of the menu handler; the build
+  of the window; and a start-up check — the window opens and stays open,
+  started directly and through the menu handler (the COM object) the way
+  File Explorer does it.
+- **Not verified yet**: the installer and the menu entry used from File
+  Explorer itself on a real machine (on Windows 11, the entry is under
+  "Show more options").
