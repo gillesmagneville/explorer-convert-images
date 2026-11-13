@@ -1,0 +1,28 @@
+[package]
+name = "convert-images-engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Image conversion engine (RAW, JPEG, PNG, TIFF, BMP, WebP) of explorer-convert-images"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+blake3 = "=1.8.2"
+lebe = "=0.5.2"
+half = "=2.4.1"
+rayon-core = "=1.12.1"
+exr = "=1.74.0"
+uuid = "=1.20.0"
+clap = { version = "=4.5.57", features = ["derive"] }
+image = { version = "0.24", default-features = false, features = ["jpeg", "png", "tiff", "bmp", "gif", "webp"] }
+imagepipe = "=0.5.0"
+infer = "0.22.0"
+rawloader = "0.37.2"
+# Bundled LibRaw (fallback when rawloader does not know the camera), see vendor/README.md
+rsraw-sys = { path = "vendor/libraw-sys" }
+rayon = "=1.10.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+walkdir = "2.5.0"

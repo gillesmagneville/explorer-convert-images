@@ -1,0 +1,11 @@
+# Cargo workspace of explorer-convert-images: the two Rust programs of the
+# project. The WinUI 3 application (C#) lives in app/ and is not built by Cargo.
+[workspace]
+resolver = "2"
+members = ["engine", "shell-verb"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+repository = "https://github.com/gillesmagneville/explorer-convert-images"

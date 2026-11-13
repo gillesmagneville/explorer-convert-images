@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Everything of the application that does not draw on screen: reading the
+       selection, talking to the engine, translations. No Windows-specific
+       dependency, so that it also builds and is tested on Linux. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ConvertImages.Core</RootNamespace>
+    <AssemblyName>ConvertImages.Core</AssemblyName>
+  </PropertyGroup>
+
+  <!-- The translation catalogs are embedded as they are (gettext .po text)
+       and parsed at startup: no compilation step, nothing to install. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../po/*.po" LogicalName="po/%(Filename).po" />
+  </ItemGroup>
+
+</Project>

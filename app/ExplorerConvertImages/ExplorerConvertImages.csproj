@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The graphical application: a WinUI 3 window (Windows App SDK).
+
+       "Unpackaged" and "self-contained": the build output is a plain folder
+       holding the program, the .NET runtime and the Windows App SDK runtime.
+       Nothing has to be installed on the user's machine beforehand, and the
+       installer simply copies that folder.
+
+       Builds on Windows only (the WinUI build tools do not run elsewhere):
+
+         dotnet publish app/ExplorerConvertImages -c Release -r win-x64 -p:Platform=x64 -o FOLDER -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <!-- No hyphen or dot in these names: the WinUI build derives identifiers
+         and resource file names from them. -->
+    <RootNamespace>ExplorerConvertImages</RootNamespace>
+    <AssemblyName>ExplorerConvertImages</AssemblyName>
+
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+
+    <!-- Faster startup (code compiled ahead of time); no trimming: nothing
+         is removed from the libraries, at the price of a larger folder. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Version pinned on purpose: a build must not change by itself. Bump it
+         deliberately (see CONTRIBUTING.md, "Updating the Windows App SDK"). -->
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConvertImages.Core\ConvertImages.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Also copied next to the program: the window icon is loaded from it. -->
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

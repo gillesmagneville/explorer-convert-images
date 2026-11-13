@@ -1,0 +1,262 @@
+# Spanish translation for explorer-convert-images.
+# Copyright (C) Gilles MAGNEVILLE
+# This file is distributed under the same license as the explorer-convert-images package.
+#
+# Most entries come from nautilus-convert-images (the Linux version), whose
+# wording the Windows interface reuses on purpose.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: explorer-convert-images\n"
+"Report-Msgid-Bugs-To: https://github.com/gillesmagneville/explorer-convert-images/issues\n"
+"POT-Creation-Date: 2026-11-13 16:00+0100\n"
+"PO-Revision-Date: 2026-11-13 16:00+0100\n"
+"Last-Translator: Claude (initial translation, to be reviewed by a native speaker)\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Convert images…"
+msgstr "Convertir imágenes…"
+
+msgid "Convert images"
+msgstr "Convertir imágenes"
+
+msgid "Analyzing the selected files…"
+msgstr "Analizando los archivos seleccionados…"
+
+msgid "No recognized image file in the selection."
+msgstr "No se reconoció ningún archivo de imagen en la selección."
+
+#, python-brace-format
+msgid "{n} file detected: {details}"
+msgid_plural "{n} files detected: {details}"
+msgstr[0] "{n} archivo detectado: {details}"
+msgstr[1] "{n} archivos detectados: {details}"
+
+msgid "Destination format:"
+msgstr "Formato de destino:"
+
+msgid "JPEG quality:"
+msgstr "Calidad JPEG:"
+
+msgid "If the file already exists:"
+msgstr "Si el archivo ya existe:"
+
+msgid "Destination folder:"
+msgstr "Carpeta de destino:"
+
+msgid "Browse…"
+msgstr "Examinar…"
+
+msgid "New folder…"
+msgstr "Carpeta nueva…"
+
+msgid "Cancel conversion"
+msgstr "Cancelar la conversión"
+
+msgid "Convert"
+msgstr "Convertir"
+
+msgid "Open the destination folder"
+msgstr "Abrir la carpeta de destino"
+
+msgid "Quit"
+msgstr "Salir"
+
+msgid "No file or folder provided."
+msgstr "No se proporcionó ningún archivo ni carpeta."
+
+#. TRANSLATORS: {menu} is the name of the context-menu entry ("Convert
+#. images…"). "Show more options" must be the exact wording of Windows 11 in
+#. your language.
+#, python-brace-format
+msgid ""
+"In File Explorer, select images or folders, right-click, then choose "
+"“{menu}” (on Windows 11: under “Show more options”)."
+msgstr ""
+"En el Explorador de archivos, seleccione imágenes o carpetas, haga clic con "
+"el botón derecho y elija «{menu}» (en Windows 11: en «Mostrar más "
+"opciones»)."
+
+msgid "Choose a folder to convert…"
+msgstr "Elegir una carpeta para convertir…"
+
+msgid "JPEG (lossy, adjustable quality)"
+msgstr "JPEG (con pérdida, calidad ajustable)"
+
+msgid "PNG (lossless)"
+msgstr "PNG (sin pérdida)"
+
+msgid "Uncompressed TIFF (lossless)"
+msgstr "TIFF sin comprimir (sin pérdida)"
+
+msgid "BMP (lossless)"
+msgstr "BMP (sin pérdida)"
+
+msgid "Lossless WebP"
+msgstr "WebP sin pérdida"
+
+msgid "Rename the new file"
+msgstr "Renombrar el archivo nuevo"
+
+msgid "Skip the file"
+msgstr "Omitir el archivo"
+
+msgid "Replace the existing file"
+msgstr "Reemplazar el archivo existente"
+
+msgid "Unknown"
+msgstr "Desconocido"
+
+msgid "Generic RAW"
+msgstr "RAW genérico"
+
+msgid "New folder"
+msgstr "Carpeta nueva"
+
+#, python-brace-format
+msgid "Create in: {folder}"
+msgstr "Crear en: {folder}"
+
+msgid "Folder name"
+msgstr "Nombre de la carpeta"
+
+#. TRANSLATORS: default name proposed for the new destination folder (a single
+#. lowercase word, e.g. "converted").
+msgid "converted"
+msgstr "convertido"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Create"
+msgstr "Crear"
+
+msgid "The name cannot be empty."
+msgstr "El nombre no puede estar vacío."
+
+#, python-brace-format
+msgid "Could not create the folder: {error}"
+msgstr "No se pudo crear la carpeta: {error}"
+
+#, python-brace-format
+msgid "Converting to {format} → {folder}\n"
+msgstr "Convirtiendo a {format} → {folder}\n"
+
+#, python-brace-format
+msgid "[OK] {input} → {output}\n"
+msgstr "[OK] {input} → {output}\n"
+
+#, python-brace-format
+msgid "[ERROR] {input}: {message}\n"
+msgstr "[ERROR] {input}: {message}\n"
+
+#, python-brace-format
+msgid "[FATAL ERROR] {message}\n"
+msgstr "[ERROR FATAL] {message}\n"
+
+#, python-brace-format
+msgid ""
+"\n"
+"Finished — succeeded: {ok}, errors: {errors}.\n"
+msgstr ""
+"\n"
+"Finalizado — correctos: {ok}, errores: {errors}.\n"
+
+msgid ""
+"\n"
+"Conversion cancelled by the user.\n"
+msgstr ""
+"\n"
+"Conversión cancelada por el usuario.\n"
+
+#, python-brace-format
+msgid "[ERROR] could not start the engine: {error}\n"
+msgstr "[ERROR] no se pudo iniciar el motor: {error}\n"
+
+#, python-brace-format
+msgid "Conversion finished — succeeded: {ok}, errors: {errors}."
+msgstr "Conversión finalizada — correctos: {ok}, errores: {errors}."
+
+msgid "Conversion in progress"
+msgstr "Conversión en curso"
+
+msgid ""
+"Quitting now will interrupt the conversion in progress. Files already "
+"converted stay on disk; the remaining ones will not be processed."
+msgstr ""
+"Salir ahora interrumpirá la conversión en curso. Los archivos ya convertidos"
+" permanecen en el disco; los restantes no se procesarán."
+
+msgid "Quit anyway"
+msgstr "Salir de todos modos"
+
+#. TRANSLATORS: {primary} is the error of the main RAW decoder and {fallback}
+#. the error of LibRaw, the backup decoder tried afterwards.
+#, python-brace-format
+msgid "{primary} ; LibRaw fallback: {fallback}"
+msgstr "{primary} ; alternativa con LibRaw: {fallback}"
+
+#, python-brace-format
+msgid "cannot open RAW file: {detail}"
+msgstr "no se puede abrir el archivo RAW: {detail}"
+
+#, python-brace-format
+msgid "RAW decoding failed: {detail}"
+msgstr "error al decodificar el RAW: {detail}"
+
+#, python-brace-format
+msgid "decoding failed: {detail}"
+msgstr "error de decodificación: {detail}"
+
+#, python-brace-format
+msgid "could not create the output file: {detail}"
+msgstr "no se pudo crear el archivo de salida: {detail}"
+
+#, python-brace-format
+msgid "could not create the output folder: {detail}"
+msgstr "no se pudo crear la carpeta de destino: {detail}"
+
+#, python-brace-format
+msgid "could not read the input list: {detail}"
+msgstr "no se pudo leer la lista de archivos: {detail}"
+
+#. TRANSLATORS: {format} is the target format name (JPEG, PNG, TIFF, BMP,
+#. WebP).
+#, python-brace-format
+msgid "{format} encoding failed: {detail}"
+msgstr "error al codificar en {format}: {detail}"
+
+#, python-brace-format
+msgid "{name}: internal decoder error (corrupted file?)"
+msgstr "{name}: error interno del decodificador (¿archivo dañado?)"
+
+msgid "skipped (the destination file already exists)"
+msgstr "omitido (el archivo de destino ya existe)"
+
+msgid "LibRaw: initialization failed"
+msgstr "LibRaw: falló la inicialización"
+
+msgid "invalid path (null byte)"
+msgstr "ruta no válida (byte nulo)"
+
+#, python-brace-format
+msgid "inconsistent {bits}-bit RAW buffer size"
+msgstr "tamaño de búfer RAW de {bits} bits incoherente"
+
+#, python-brace-format
+msgid ""
+"LibRaw: unexpected developed image (type {kind}, {colors} channels, {depth} "
+"bits)"
+msgstr ""
+"LibRaw: imagen revelada inesperada (tipo {kind}, {colors} canales, {depth} "
+"bits)"
+
+#, python-brace-format
+msgid "LibRaw: inconsistent image size ({size} bytes, {expected} expected)"
+msgstr ""
+"LibRaw: tamaño de imagen incoherente ({size} bytes, se esperaban {expected})"

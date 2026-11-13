@@ -1,0 +1,21 @@
+<Project>
+
+  <!-- Settings shared by the C# projects of explorer-convert-images. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Single source of truth for the version: the VERSION file at the root
+         of the repository (also read by the installer build and checked
+         against Cargo.toml by the Rust tests). -->
+    <ProjectVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)../VERSION').Trim())</ProjectVersion>
+    <Version>$(ProjectVersion)</Version>
+
+    <Product>explorer-convert-images</Product>
+    <Authors>Gilles MAGNEVILLE</Authors>
+    <Copyright>Copyright (C) Gilles MAGNEVILLE. Licensed under the GNU GPL version 3.</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

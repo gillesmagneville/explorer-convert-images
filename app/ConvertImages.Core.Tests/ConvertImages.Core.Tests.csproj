@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests of ConvertImages.Core, as a plain console program: no test
+       framework to download, runs the same way on Linux and on Windows.
+       Started without argument it runs the tests; with the "write-pot"
+       option it regenerates the translation template from Msg.cs. The exact
+       commands are in CONTRIBUTING.md (an XML comment cannot spell them:
+       it may not contain two hyphens in a row). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>ConvertImages.Core.Tests</RootNamespace>
+    <AssemblyName>ConvertImages.Core.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ConvertImages.Core/ConvertImages.Core.csproj" />
+  </ItemGroup>
+
+</Project>

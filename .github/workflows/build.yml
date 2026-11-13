@@ -1,0 +1,190 @@
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Builds, tests and packages explorer-convert-images.
+#
+#   rust       (Linux)    tests the two Rust programs, then cross-compiles
+#                         them for Windows
+#   app        (Windows)  tests the C# core library against the real engine,
+#                         tests the menu handler on a real Windows, builds the
+#                         window, then checks the three programs together
+#   installer  (Linux)    builds the installer and its .sha256 file; on a
+#                         version tag (v1.2.3), also prepares a draft release
+#
+# The installer is the "installer" artifact of each run (Actions tab of the
+# repository > the run > Artifacts).
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  WINDOWS_TARGET: x86_64-pc-windows-gnu
+
+jobs:
+  rust:
+    name: Engine and menu handler (Rust)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the MinGW-w64 compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix
+
+      # The version pinned in rust-toolchain.toml, with the Windows target.
+      - name: Install the Rust toolchain
+        run: |
+          channel="$(sed -n 's/^channel = "\(.*\)"$/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "$channel" --profile minimal --target "$WINDOWS_TARGET"
+          rustup show active-toolchain
+          cargo --version
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build for Windows
+        run: cargo build --release --locked --target "$WINDOWS_TARGET"
+
+      # They must run on a Windows that has no MinGW installed.
+      - name: Check that the programs need no MinGW DLL
+        run: |
+          for exe in convert-images-engine explorer-convert-images-verb; do
+            if x86_64-w64-mingw32-objdump -p "target/$WINDOWS_TARGET/release/$exe.exe" \
+                | grep -i 'DLL Name' | grep -i -E 'libstdc\+\+|libgcc|libwinpthread'; then
+              echo "::error::$exe.exe depends on a MinGW DLL (see above)"
+              exit 1
+            fi
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rust-windows
+          path: |
+            target/${{ env.WINDOWS_TARGET }}/release/convert-images-engine.exe
+            target/${{ env.WINDOWS_TARGET }}/release/explorer-convert-images-verb.exe
+          if-no-files-found: error
+
+  app:
+    name: Window (C#, WinUI 3)
+    needs: rust
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: rust-windows
+          path: rust-windows
+
+      # The same tests as on Linux, plus the engine driven on a real Windows.
+      - name: Test the core library with the real engine
+        shell: pwsh
+        env:
+          CONVERT_IMAGES_REQUIRE_ENGINE: "1"
+        run: |
+          $env:CONVERT_IMAGES_ENGINE = (Resolve-Path rust-windows\convert-images-engine.exe).Path
+          dotnet run -c Release --project app/ConvertImages.Core.Tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # Its COM and shell code only exists in a Windows build.
+      - name: Test the menu handler on Windows
+        shell: pwsh
+        run: |
+          $channel = (Select-String -Path rust-toolchain.toml -Pattern '^channel = "(.*)"$').Matches[0].Groups[1].Value
+          rustup toolchain install $channel --profile minimal --target $env:WINDOWS_TARGET
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test --locked -p explorer-convert-images-verb
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build the window
+        shell: pwsh
+        run: |
+          dotnet publish app/ExplorerConvertImages -c Release -r win-x64 -p:Platform=x64 -o dist/explorer-convert-images
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Add the Rust programs
+        shell: pwsh
+        run: Copy-Item rust-windows\*.exe dist\explorer-convert-images\
+
+      # On the real thing: the window started directly, then the whole chain
+      # menu handler -> window, as File Explorer does (see selftest.rs).
+      - name: Check the built programs together
+        shell: pwsh
+        run: |
+          target\debug\examples\selftest.exe --dist dist\explorer-convert-images
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # Everything the installer installs, as a plain folder.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: explorer-convert-images-folder
+          path: dist/explorer-convert-images
+          if-no-files-found: error
+
+  installer:
+    name: Installer
+    needs: app
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # to create the draft release, on a version tag only
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install NSIS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends nsis binutils-mingw-w64-x86-64
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: explorer-convert-images-folder
+          path: dist/explorer-convert-images
+
+      - name: Build the installer
+        run: bash ./build-installer.sh --dist dist/explorer-convert-images
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer
+          path: |
+            dist/explorer-convert-images-*-setup.exe
+            dist/explorer-convert-images-*-setup.exe.sha256
+          if-no-files-found: error
+
+      # A draft: nothing is public until you review and publish it yourself.
+      - name: Prepare a draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(tr -d '[:space:]' < VERSION)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::the tag $GITHUB_REF_NAME does not match the VERSION file ($version)"
+            exit 1
+          fi
+          bash ./tools/release-notes.sh "$version" > release-notes.md
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes-file release-notes.md \
+            dist/explorer-convert-images-*-setup.exe \
+            dist/explorer-convert-images-*-setup.exe.sha256
