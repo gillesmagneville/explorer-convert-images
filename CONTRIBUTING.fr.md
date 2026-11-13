@@ -118,8 +118,9 @@ L'installeur et son fichier `.sha256` sont écrits dans `dist/`.
 ### Vérifier toute la chaîne sous Windows
 
 `selftest` fait ce que fait l'Explorateur de fichiers sur **Convertir les
-images…** et vérifie que la fenêtre s'ouvre et reste ouverte. Construisez-le
-avec Rust sous Windows :
+images…** et vérifie qu'une fenêtre de l'application arrive à l'écran,
+qu'elle y est encore vingt secondes plus tard et que l'application n'a
+journalisé aucune erreur. Construisez-le avec Rust sous Windows :
 
 ```powershell
 cargo build -p explorer-convert-images-verb --example selftest
@@ -209,6 +210,12 @@ est dans `global.json` et dans le workflow. Changez une seule chose à la
 fois, dans une demande de fusion à part : le workflow construit la fenêtre
 et la lance (`selftest`), et c'est ce qui dit si la nouvelle version
 fonctionne.
+
+Après une mise à jour du Windows App SDK, regardez si
+`app/ExplorerConvertImages/PublishWinUIResources.targets` est encore
+nécessaire : il compense un fichier que `dotnet publish` oublie, et son
+en-tête dit comment le savoir. Une construction qui n'affiche plus de ligne
+« added to the published files » n'en a plus besoin.
 
 ## Publier une version
 

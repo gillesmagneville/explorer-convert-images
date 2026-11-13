@@ -395,10 +395,24 @@ n'a pas suivi.
 2. **`app`** (Windows) — les tests C# avec le moteur Windows ; les tests du
    gestionnaire propres à Windows (`cargo test`, avec la chaîne de
    compilation de Microsoft) ; `dotnet publish` de la fenêtre ; puis
-   `selftest --dist`, qui lance la fenêtre construite et passe par le
-   gestionnaire comme l'Explorateur.
+   `selftest --dist`, qui vérifie le contenu du dossier publié, lance la
+   fenêtre construite et passe par le gestionnaire comme l'Explorateur. À
+   chaque fois, une fenêtre de l'application doit être à l'écran et y être
+   encore vingt secondes plus tard. Si une étape échoue, les erreurs
+   enregistrées par Windows sont affichées.
 3. **`installer`** (Linux) — NSIS, le fichier `.sha256` et, sur une
    étiquette `vX.Y.Z`, une version en brouillon.
+
+Le dossier publié a besoin d'un fichier que `dotnet publish` n'y met pas de
+lui-même : `ExplorerConvertImages.pri`, l'index de ressources par lequel la
+fenêtre trouve l'apparence déclarée dans `App.xaml`. Le Windows App SDK ne
+le publie que pour les paquets MSIX
+([ticket 6720](https://github.com/microsoft/WindowsAppSDK/issues/6720)) ;
+sans lui, rien n'est signalé à la construction, et la fenêtre s'arrête
+toute seule une dizaine de secondes après son lancement.
+`PublishWinUIResources.targets`, importé par le projet de la fenêtre, ajoute
+le fichier au dossier publié et fait échouer la publication s'il manque ;
+`selftest` et `build-installer.sh` le vérifient à nouveau.
 
 Pourquoi les programmes Rust sont construits sous Linux pour Windows : le
 script de construction du LibRaw embarqué ne prend pas en charge le

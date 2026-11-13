@@ -376,9 +376,23 @@ place fails loudly until the other follows.
 2. **`app`** (Windows) — the C# tests against the Windows engine; the
    Windows-only tests of the handler (`cargo test`, with the Microsoft
    toolchain); `dotnet publish` of the window; then `selftest --dist`, which
-   starts the built window and goes through the handler like File Explorer.
+   checks the content of the published folder, starts the built window and
+   goes through the handler like File Explorer. Each time, a window of the
+   application must be on the screen and still be there twenty seconds
+   later. If a step fails, the errors Windows recorded are printed.
 3. **`installer`** (Linux) — NSIS, the `.sha256` file and, on a tag
    `vX.Y.Z`, a draft release.
+
+The published folder needs a file `dotnet publish` does not put there by
+itself: `ExplorerConvertImages.pri`, the resource index through which the
+window finds the look declared in `App.xaml`. The Windows App SDK only
+publishes it for MSIX packages
+([issue 6720](https://github.com/microsoft/WindowsAppSDK/issues/6720));
+without it nothing is reported at build time, and the window stops by itself
+some ten seconds after starting. `PublishWinUIResources.targets`, imported
+by the project of the window, adds the file to the published folder and
+makes the publish fail if it is missing; `selftest` and `build-installer.sh`
+check for it again.
 
 Why the Rust programs are built on Linux for Windows: the build script of
 the bundled LibRaw does not support the Microsoft compiler, and the GNU

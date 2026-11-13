@@ -127,13 +127,26 @@ jobs:
         shell: pwsh
         run: Copy-Item rust-windows\*.exe dist\explorer-convert-images\
 
-      # On the real thing: the window started directly, then the whole chain
-      # menu handler -> window, as File Explorer does (see selftest.rs).
+      # On the real thing: the content of the folder, the window started
+      # directly, then the whole chain menu handler -> window, as File
+      # Explorer does (see selftest.rs).
       - name: Check the built programs together
         shell: pwsh
         run: |
           target\debug\examples\selftest.exe --dist dist\explorer-convert-images
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # Only when a step above failed: the errors Windows itself recorded in
+      # the last half hour. For a program that stopped by itself, they name
+      # the faulty module and the error code.
+      - name: Show the errors recorded by Windows
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-WinEvent -FilterHashtable @{ LogName = 'Application'; Level = 1, 2; StartTime = (Get-Date).AddMinutes(-30) } -ErrorAction SilentlyContinue |
+            Select-Object -First 12 |
+            Format-List TimeCreated, ProviderName, Id, Message
+          exit 0
 
       # Everything the installer installs, as a plain folder.
       - uses: actions/upload-artifact@v7

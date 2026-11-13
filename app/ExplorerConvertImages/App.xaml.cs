@@ -17,16 +17,41 @@ public partial class App : Application
 
     public App()
     {
-        InitializeComponent();
+        // Before anything else, so that an error at start-up leaves a trace
+        // too. The two events cover different places: the first one the code
+        // called by the window system, the second one everything else.
         UnhandledException += (_, e) => CrashLog.Write(e.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (_, e) => CrashLog.Write(
+            e.ExceptionObject as Exception ?? new InvalidOperationException(e.ExceptionObject?.ToString()));
+
+        // Start-up runs inside a call made by the window system, and an error
+        // there does not always reach the events above: hence the explicit
+        // traces, here and in OnLaunched.
+        try
+        {
+            InitializeComponent();
+        }
+        catch (Exception exception)
+        {
+            CrashLog.Write(exception);
+            throw;
+        }
     }
 
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        // The first element is the path of the program itself.
-        var arguments = AppArguments.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
-        _window = new MainWindow(arguments);
-        _window.Activate();
+        try
+        {
+            // The first element is the path of the program itself.
+            var arguments = AppArguments.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
+            _window = new MainWindow(arguments);
+            _window.Activate();
+        }
+        catch (Exception exception)
+        {
+            CrashLog.Write(exception);
+            throw;
+        }
     }
 }
 
@@ -38,8 +63,18 @@ public partial class App : Application
 /// </summary>
 internal static class CrashLog
 {
+    private static Exception? _lastWritten;
+
     public static void Write(Exception exception)
     {
+        // The same error can come by two ways (an explicit trace, then one of
+        // the "unhandled" events): once is enough.
+        if (ReferenceEquals(exception, _lastWritten))
+        {
+            return;
+        }
+        _lastWritten = exception;
+
         try
         {
             var file = Path.Combine(Path.GetTempPath(), "explorer-convert-images-app.log");

@@ -37,6 +37,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET="x86_64-pc-windows-gnu"
 APP_EXE="ExplorerConvertImages.exe"
+# The resource index of the window. "dotnet publish" used to leave it out, and
+# the window does not start without it (see
+# app/ExplorerConvertImages/PublishWinUIResources.targets).
+APP_PRI="ExplorerConvertImages.pri"
 ENGINE_EXE="convert-images-engine.exe"
 VERB_EXE="explorer-convert-images-verb.exe"
 
@@ -68,6 +72,7 @@ need sha256sum "it is part of coreutils"
 
 if [ -n "$APP_DIR" ]; then
     [ -f "$APP_DIR/$APP_EXE" ] || die "$APP_DIR does not hold $APP_EXE: not a published window"
+    [ -f "$APP_DIR/$APP_PRI" ] || die "$APP_DIR does not hold $APP_PRI: the window would not start (publish it again with the current sources)"
 
     if [ "$BUILD_RUST" = 1 ]; then
         need cargo "install Rust (https://rustup.rs)"
@@ -89,8 +94,8 @@ if [ -n "$APP_DIR" ]; then
     cp "$RUST_OUT/$ENGINE_EXE" "$RUST_OUT/$VERB_EXE" "$DIST_DIR/"
 fi
 
-for exe in "$APP_EXE" "$ENGINE_EXE" "$VERB_EXE"; do
-    [ -f "$DIST_DIR/$exe" ] || die "$DIST_DIR does not hold $exe"
+for file in "$APP_EXE" "$APP_PRI" "$ENGINE_EXE" "$VERB_EXE"; do
+    [ -f "$DIST_DIR/$file" ] || die "$DIST_DIR does not hold $file"
 done
 
 # The Rust programs must run on a Windows that has no MinGW installed: fail

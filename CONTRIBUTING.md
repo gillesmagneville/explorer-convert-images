@@ -114,7 +114,9 @@ The installer and its `.sha256` file are written to `dist/`.
 ### Checking the whole chain on Windows
 
 `selftest` does what File Explorer does on **Convert images…** and checks
-that the window opens and stays up. Build it with Rust on Windows:
+that a window of the application comes on the screen, is still there twenty
+seconds later, and that the application logged no error. Build it with Rust
+on Windows:
 
 ```powershell
 cargo build -p explorer-convert-images-verb --example selftest
@@ -199,6 +201,12 @@ The Windows App SDK version is the `PackageReference` of
 version is in `global.json` and in the workflow. Change one thing at a
 time, in a pull request of its own: the workflow builds the window and
 starts it (`selftest`), which is what tells whether the new version works.
+
+After an update of the Windows App SDK, see whether
+`app/ExplorerConvertImages/PublishWinUIResources.targets` is still needed:
+it makes up for a file `dotnet publish` leaves out, and its header says how
+to tell. A build that prints no "added to the published files" line no
+longer needs it.
 
 ## Publishing a release
 
