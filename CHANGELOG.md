@@ -15,6 +15,16 @@ GitHub are taken from it (see "Publishing a release" in `CONTRIBUTING.md`).
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation brought up to the level of nautilus-convert-images (English
+  and French): the README now holds the "RAW compatibility" section in full,
+  a table of typical uses, what the installer does, the command-line use of
+  the engine, how to get set up and what the tests cover;
+  `ARCHITECTURE.md` describes the engine (format detection, RAW decoding,
+  conversion); `CONTRIBUTING.md` explains how to add a destination format;
+  `PROJECT_CONTEXT.md` gains an "Extensibility" section.
+
 ## 2026-11-13 — v1.0.0
 
 First release of the project: the Windows counterpart of

@@ -188,6 +188,19 @@ that price low:
 
 ---
 
+# Extensibility
+
+Adding a new destination format must only touch a small number of
+well-identified points: the engine, and the list of formats of the window —
+not the menu handler. Adding a new source format by its extension touches
+the table of the engine and the list of file types that get the menu entry
+(a test makes sure the two agree). The exact contract (what to add where) is
+defined in `ARCHITECTURE.md`. As the engine is developed in
+nautilus-convert-images, the engine part of such a change is made there
+first (see "One engine, two projects").
+
+---
+
 # Performance goals
 
 * Detection: near-instant, even on several thousand files

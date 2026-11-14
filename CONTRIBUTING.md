@@ -144,6 +144,33 @@ current user only. The complete chain — menu, handler, window — can
 therefore only be exercised on a real Windows; the window itself does not
 run under Wine.
 
+## Adding a new destination format
+
+This is the most common kind of contribution. The exact contract (the
+lossless/depth/alpha table, the code points to change) is defined in
+`ARCHITECTURE.md`, in the "Conversion" section ("Extension point — adding a
+new destination format"). The engine is developed in nautilus-convert-images
+(see "Changing the engine" below): the format is added there first, then
+carried over to `engine/`. In short:
+
+1. `engine/src/convert.rs` — new `TargetFormat` variant + encoding case.
+2. `engine/src/main.rs` — entry in the output of the `formats` subcommand.
+3. `app/ConvertImages.Core/Engine/ConversionOptions.cs` — entry in
+   `Choices.Formats`, with its text in `Localization/Msg.cs` and its
+   translations (see "Translating the interface"); the test that lists the
+   formats, in `app/ConvertImages.Core.Tests/EngineTests.cs`, follows.
+4. `ARCHITECTURE.md` — update the formats table.
+
+### Rules for any new format
+
+- Never advertise a format as "lossless" if it really is not — see
+  "Reliability and transparency" in `PROJECT_CONTEXT.md`. If in doubt, check
+  with a pixel-by-pixel comparison (see the "Tests" section of `README.md`
+  for the method used so far).
+- No cropping or resizing added, even as an option, without discussing it in
+  an issue first — it is a founding principle of the project
+  (`PROJECT_CONTEXT.md`, principle no. 2).
+
 ## Translating the interface
 
 The texts are in `app/ConvertImages.Core/Localization/Msg.cs` (English) and

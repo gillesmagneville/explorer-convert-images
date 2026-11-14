@@ -197,6 +197,20 @@ correctifs du moteur. Pour que ce prix reste faible :
 
 ---
 
+# Extensibilité
+
+Ajouter un nouveau format de destination ne doit toucher qu'un petit nombre
+de points bien identifiés : le moteur, et la liste des formats de la
+fenêtre — pas le gestionnaire de menu. Ajouter un nouveau format source par
+son extension touche la table du moteur et la liste des types de fichiers
+qui reçoivent l'entrée de menu (un test vérifie que les deux concordent). Le
+contrat exact (quoi ajouter où) est défini dans `ARCHITECTURE.fr.md`. Comme
+le moteur est développé dans nautilus-convert-images, la partie « moteur »
+d'une telle modification s'y fait d'abord (voir « Un moteur, deux
+projets »).
+
+---
+
 # Objectifs de performance
 
 * Détection : quasi instantanée, même sur plusieurs milliers de fichiers

@@ -16,6 +16,17 @@ sur GitHub en sont tirées (voir « Publier une version » dans
 
 ## [Non publié]
 
+### Modifié
+
+- Documentation portée au niveau de celle de nautilus-convert-images
+  (anglais et français) : le README contient désormais en entier la section
+  « Compatibilité RAW », un tableau d'usages courants, ce que fait
+  l'installeur, l'utilisation du moteur en ligne de commande, la mise en
+  place et ce que couvrent les tests ; `ARCHITECTURE.fr.md` décrit le moteur
+  (détection des formats, décodage RAW, conversion) ; `CONTRIBUTING.fr.md`
+  explique comment ajouter un format de destination ; `PROJECT_CONTEXT.fr.md`
+  gagne une section « Extensibilité ».
+
 ## 2026-11-13 — v1.0.0
 
 Première version du projet : le pendant Windows de nautilus-convert-images,

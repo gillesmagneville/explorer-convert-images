@@ -226,10 +226,129 @@ Comportements à connaître :
 # Le moteur (`convert-images-engine`)
 
 Le moteur est une copie de celui de nautilus-convert-images, adaptée pour
-se construire et fonctionner sous Windows (`engine/UPSTREAM.fr.md`). La
-détection des formats, le décodage RAW et la conversion sont ceux décrits
-dans l'`ARCHITECTURE.fr.md` de ce projet ; ce qui suit est la partie dont
-dépend la fenêtre.
+se construire et fonctionner sous Windows (`engine/UPSTREAM.fr.md`). Il est
+développé dans ce projet ; son fonctionnement est aussi décrit ici, pour que
+ce dépôt se comprenne seul. Ce qui diffère de l'original est listé dans
+`engine/UPSTREAM.fr.md`.
+
+## Détection de format (`formats.rs`)
+
+```rust
+enum DetectedFormat {
+    Standard(StandardFormat),  // Jpeg | Png | Tiff | Bmp | Gif | WebP
+    Raw(String),                // étiquette lisible, ex. "RAW Canon (CR2)"
+    Unknown,
+}
+```
+
+Stratégie, dans cet ordre :
+
+1. **Extension connue** — table statique `standard_extension()` /
+   `raw_extension_label()`. Résout l'ambiguïté entre TIFF classique et les
+   nombreux formats RAW qui sont eux-mêmes des conteneurs TIFF au niveau
+   des octets magiques (CR2, NEF, DNG, ARW, ORF, PEF...).
+2. **Contenu (extension absente ou inconnue)** — sniffing par octets
+   magiques via `infer`, limité aux formats standards non ambigus
+   (`image/tiff` est volontairement ignoré ici, pour la même raison qu'au
+   point 1).
+3. **Dernier recours** — tentative de décodage RAW réel
+   (`rawloader::decode_file`) ; en cas de succès, l'étiquette est
+   construite à partir de `make`/`model` lus dans les métadonnées du
+   fichier lui-même.
+
+**Point d'extension — ajouter un nouveau format RAW par extension :**
+ajouter une entrée dans `raw_extension_label()` (`formats.rs`), et
+l'extension dans `shell-verb/src/extensions.rs`, qui liste les types de
+fichiers recevant l'entrée de menu (un test échoue tant que les deux listes
+ne sont pas identiques). Rien d'autre à modifier : le décodage réel dépend
+uniquement de la couverture de `rawloader`, pas de cette table, qui ne sert
+qu'à l'étiquetage et au filtrage lors du parcours de dossier
+(`has_known_image_extension()`).
+
+## Décodage RAW (`raw.rs`)
+
+Pipeline `rawloader` + `imagepipe`, toujours avec
+`maxwidth = 0, maxheight = 0` (aucun redimensionnement) et les opérations
+de recadrage du pipeline laissées à leur valeur par défaut (no-op) — voir
+`PROJECT_CONTEXT.fr.md`, principe n°2. Deux sorties possibles :
+
+* `decode_8bit()` → RGB 8 bits/canal (JPEG, BMP, WebP)
+* `decode_16bit()` → RGB 16 bits/canal (PNG, TIFF — pour préserver toute la
+  profondeur que le capteur peut fournir)
+
+**Ordre de décodage et repli.** Pour chaque fichier RAW :
+
+1. `rawloader` + `imagepipe` (décodeur principal) ;
+2. si cela échoue — typiquement un boîtier absent de la base de
+   `rawloader` — repli sur **LibRaw** (`libraw.rs`) ;
+3. si LibRaw échoue aussi, l'erreur des deux décodeurs est remontée
+   (« … ; repli LibRaw : … ») pour ce fichier seulement, et le lot continue.
+
+Chaque décodeur est exécuté sous `catch_unwind` : une panique interne
+(fichier corrompu) devient une erreur de ce fichier au lieu d'arrêter le
+moteur. `imagepipe` masque la cause réelle d'un échec (il essaie `rawloader`,
+puis `image::open`, et renvoie « Don't know how to decode image ») : `raw.rs`
+rappelle donc `rawloader::decode_file` pour remonter son erreur exacte.
+
+Réglages LibRaw (`libraw.rs`) : pleine résolution (`half_size = 0`, aucun
+recadrage ni redimensionnement), balance des blancs de l'appareil
+(`use_camera_wb = 1`), sortie sRGB avec courbe sRGB (`gamm = 1/2.4, 12.92`),
+pas de luminosité automatique (`no_auto_bright = 1`), 8 ou 16 bits selon le
+format cible. Contrairement à `imagepipe`, qui applique une courbe de base
+sur la luminance (`basecurve`, point 0,50 → 0,60, « pour passer du linéaire
+à un aspect plus naturel »), LibRaw n'applique aucune courbe de tons : le
+rendu du repli est plus sombre. Ni l'un ni l'autre ne fait de correction
+d'objectif, de netteté ni de réduction de bruit.
+
+**Sous Windows**, le fichier est lu par Rust et donné à LibRaw sous forme de
+tampon en mémoire (`libraw_open_buffer`), au lieu de laisser LibRaw
+l'ouvrir depuis son chemin comme sous Unix : l'API par chemin de LibRaw ne
+comprend que la page de codes historique de Windows, si bien qu'un chemin
+contenant d'autres caractères (des accents, selon la langue du système) ou
+de plus de 260 caractères échouerait.
+
+Options facultatives de LibRaw **non compilées** (`build.rs` ne définit ni
+`USE_JPEG`, `USE_ZLIB`, `USE_X3FTOOLS`, `USE_DNGSDK` ni `USE_RAWSPEED`) : le
+repli ne lit donc pas les DNG compressés avec perte (JPEG) ni les DNG à
+virgule flottante compressés (deflate), ni les Sigma Foveon (X3F), que
+`rawloader` décode seul pour les modèles qu'il connaît. Le CR3, absent de
+`rawloader`, ne passe que par LibRaw (`crx.cpp` et `cr3_parser.cpp` sont
+compilés) ; il n'a pas été testé sur de vrais fichiers. Activer ces options
+exigerait `libjpeg`/`zlib` à la compilation : à envisager si des fichiers
+réels l'imposent.
+
+## Conversion (`convert.rs`)
+
+```rust
+enum TargetFormat { Jpeg, Png, Tiff, Bmp, Webp }
+```
+
+| Format cible | Sans perte ? | Profondeur | Alpha |
+|---|---|---|---|
+| PNG | Oui | 8 ou 16 bits (héritée de la source) | Conservé |
+| TIFF | Oui (non compressé) | 8 ou 16 bits (héritée de la source) | Conservé |
+| BMP | Oui | 8 bits | Conservé si présent |
+| WebP | Oui (VP8L) | 8 bits | Conservé si présent |
+| JPEG | **Non** — limite du format lui-même | 8 bits | Non supporté (aplati) |
+
+Le tableau ci-dessus est la source de vérité ; `TargetFormat::is_lossless()`
+doit toujours y correspondre exactement.
+
+**Point d'extension — ajouter un nouveau format de destination :**
+
+1. Moteur (à faire d'abord dans nautilus-convert-images, puis à reporter —
+   voir `engine/UPSTREAM.fr.md`) : ajouter la variante dans `TargetFormat`
+   (`convert.rs`) et son `extension()`, puis le cas d'encodage dans
+   `encode_target()`.
+2. Ajouter la ligne correspondante dans le tableau ci-dessus **et** dans
+   la sortie de la sous-commande `formats` (`main.rs`).
+3. Côté fenêtre : ajouter l'entrée dans `Choices.Formats`
+   (`app/ConvertImages.Core/Engine/ConversionOptions.cs`), avec son texte
+   dans `Localization/Msg.cs` et ses traductions ; le test qui liste les
+   formats (`EngineTests.cs`) suit.
+
+Rien d'autre ne doit changer — ni le gestionnaire de menu, ni le schéma
+JSON ci-dessous.
 
 ## Interface en ligne de commande (`cli.rs` / `main.rs`)
 

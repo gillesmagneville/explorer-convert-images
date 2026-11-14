@@ -149,6 +149,35 @@ classes enregistrées pour le seul utilisateur courant. La chaîne complète —
 menu, gestionnaire, fenêtre — ne peut donc être exercée que sur un vrai
 Windows ; la fenêtre elle-même ne fonctionne pas sous Wine.
 
+## Ajouter un nouveau format de destination
+
+C'est le type de contribution le plus courant. Le contrat exact (le tableau
+sans perte/profondeur/alpha, les points du code à modifier) est défini dans
+`ARCHITECTURE.fr.md`, section « Conversion » (« Point d'extension — ajouter
+un nouveau format de destination »). Le moteur est développé dans
+nautilus-convert-images (voir « Modifier le moteur » plus bas) : le format y
+est ajouté d'abord, puis reporté dans `engine/`. En bref :
+
+1. `engine/src/convert.rs` — nouvelle variante de `TargetFormat` + cas
+   d'encodage.
+2. `engine/src/main.rs` — entrée dans la sortie de la sous-commande
+   `formats`.
+3. `app/ConvertImages.Core/Engine/ConversionOptions.cs` — entrée dans
+   `Choices.Formats`, avec son texte dans `Localization/Msg.cs` et ses
+   traductions (voir « Traduire l'interface ») ; le test qui liste les
+   formats, dans `app/ConvertImages.Core.Tests/EngineTests.cs`, suit.
+4. `ARCHITECTURE.fr.md` — mettre à jour le tableau des formats.
+
+### Règles pour tout nouveau format
+
+- Ne jamais annoncer un format « sans perte » s'il ne l'est pas vraiment —
+  voir « Fiabilité et transparence » dans `PROJECT_CONTEXT.fr.md`. Dans le
+  doute, vérifier par une comparaison pixel à pixel (voir la section
+  « Tests » de `README.fr.md` pour la méthode employée jusqu'ici).
+- Aucun recadrage ni redimensionnement ajouté, même en option, sans en
+  discuter d'abord dans une issue — c'est un principe fondateur du projet
+  (`PROJECT_CONTEXT.fr.md`, principe n°2).
+
 ## Traduire l'interface
 
 Les textes sont dans `app/ConvertImages.Core/Localization/Msg.cs` (anglais)

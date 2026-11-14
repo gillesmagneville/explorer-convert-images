@@ -213,9 +213,122 @@ Behaviour worth knowing:
 # The engine (`convert-images-engine`)
 
 The engine is a copy of that of nautilus-convert-images, adapted to build
-and run on Windows (`engine/UPSTREAM.md`). Format detection, RAW decoding
-and conversion are those described in the `ARCHITECTURE.md` of that
-project; what follows is the part the window depends on.
+and run on Windows (`engine/UPSTREAM.md`). It is developed in that project;
+its working is described here as well, so that this repository can be
+understood on its own. What differs from the original is listed in
+`engine/UPSTREAM.md`.
+
+## Format detection (`formats.rs`)
+
+```rust
+enum DetectedFormat {
+    Standard(StandardFormat),  // Jpeg | Png | Tiff | Bmp | Gif | WebP
+    Raw(String),                // readable label, e.g. "RAW Canon (CR2)"
+    Unknown,
+}
+```
+
+Strategy, in this order:
+
+1. **Known extension** — static table `standard_extension()` /
+   `raw_extension_label()`. This resolves the ambiguity between plain TIFF
+   and the many RAW formats that are themselves TIFF containers at the
+   magic-byte level (CR2, NEF, DNG, ARW, ORF, PEF...).
+2. **Content (missing or unknown extension)** — magic-byte sniffing with
+   `infer`, limited to the unambiguous standard formats (`image/tiff` is
+   deliberately ignored here, for the same reason as in point 1).
+3. **Last resort** — an actual RAW decoding attempt
+   (`rawloader::decode_file`); on success, the label is built from the
+   `make`/`model` read from the file's own metadata.
+
+**Extension point — adding a new RAW format by extension:**
+add an entry to `raw_extension_label()` (`formats.rs`), and the extension to
+`shell-verb/src/extensions.rs`, which lists the file types that get the menu
+entry (a test fails until the two lists are identical). Nothing else needs
+to change: the actual decoding depends only on what `rawloader` covers, not
+on this table, which is only used for labeling and for filtering during
+folder traversal (`has_known_image_extension()`).
+
+## RAW decoding (`raw.rs`)
+
+`rawloader` + `imagepipe` pipeline, always with
+`maxwidth = 0, maxheight = 0` (no resizing) and the pipeline's cropping
+operations left at their default value (no-op) — see `PROJECT_CONTEXT.md`,
+principle no. 2. Two possible outputs:
+
+* `decode_8bit()` → 8 bits/channel RGB (JPEG, BMP, WebP)
+* `decode_16bit()` → 16 bits/channel RGB (PNG, TIFF — to preserve all the
+  depth the sensor can provide)
+
+**Decoding order and fallback.** For each RAW file:
+
+1. `rawloader` + `imagepipe` (main decoder);
+2. if that fails — typically a camera missing from `rawloader`'s database —
+   fall back to **LibRaw** (`libraw.rs`);
+3. if LibRaw fails too, the errors of both decoders are reported
+   ("… ; LibRaw fallback: …") for that file only, and the batch continues.
+
+Each decoder runs under `catch_unwind`: an internal panic (corrupt file)
+becomes an error for that file instead of stopping the engine. `imagepipe`
+hides the real cause of a failure (it tries `rawloader`, then `image::open`,
+and returns "Don't know how to decode image"): `raw.rs` therefore calls
+`rawloader::decode_file` again to report its exact error.
+
+LibRaw settings (`libraw.rs`): full resolution (`half_size = 0`, no cropping
+or resizing), camera white balance (`use_camera_wb = 1`), sRGB output with
+the sRGB curve (`gamm = 1/2.4, 12.92`), no automatic brightness
+(`no_auto_bright = 1`), 8 or 16 bits depending on the target format. Unlike
+`imagepipe`, which applies a base curve to the luminance (`basecurve`, point
+0.50 → 0.60, "to go from linear to a more natural look"), LibRaw applies no
+tone curve: the fallback rendering is darker. Neither does lens correction,
+sharpening or noise reduction.
+
+**On Windows**, the file is read by Rust and handed to LibRaw as a memory
+buffer (`libraw_open_buffer`), instead of letting LibRaw open it from its
+path as it does on Unix: LibRaw's path API only understands the legacy code
+page of Windows, so a path with other characters (accents, depending on the
+language of the system) or longer than 260 characters would fail.
+
+Optional LibRaw features that are **not compiled** (`build.rs` defines none
+of `USE_JPEG`, `USE_ZLIB`, `USE_X3FTOOLS`, `USE_DNGSDK` or `USE_RAWSPEED`):
+the fallback therefore cannot read lossy-compressed (JPEG) DNGs, deflate-
+compressed floating-point DNGs, or Sigma Foveon (X3F) files, which
+`rawloader` decodes on its own for the models it knows. CR3, absent from
+`rawloader`, only goes through LibRaw (`crx.cpp` and `cr3_parser.cpp` are
+compiled); it has not been tested on real files. Enabling these options would
+require `libjpeg`/`zlib` at build time: to consider if real files demand it.
+
+## Conversion (`convert.rs`)
+
+```rust
+enum TargetFormat { Jpeg, Png, Tiff, Bmp, Webp }
+```
+
+| Target format | Lossless? | Bit depth | Alpha |
+|---|---|---|---|
+| PNG | Yes | 8 or 16 bits (inherited from the source) | Kept |
+| TIFF | Yes (uncompressed) | 8 or 16 bits (inherited from the source) | Kept |
+| BMP | Yes | 8 bits | Kept if present |
+| WebP | Yes (VP8L) | 8 bits | Kept if present |
+| JPEG | **No** — a limit of the format itself | 8 bits | Not supported (flattened) |
+
+The table above is the source of truth; `TargetFormat::is_lossless()` must
+always match it exactly.
+
+**Extension point — adding a new destination format:**
+
+1. Engine (made in nautilus-convert-images first, then carried over — see
+   `engine/UPSTREAM.md`): add the variant to `TargetFormat` (`convert.rs`)
+   and its `extension()`, then the encoding case to `encode_target()`.
+2. Add the matching row to the table above **and** to the output of the
+   `formats` subcommand (`main.rs`).
+3. Window side: add the entry to `Choices.Formats`
+   (`app/ConvertImages.Core/Engine/ConversionOptions.cs`), with its text in
+   `Localization/Msg.cs` and its translations; the test that lists the
+   formats (`EngineTests.cs`) follows.
+
+Nothing else must change — neither the menu handler nor the JSON schema
+below.
 
 ## Command-line interface (`cli.rs` / `main.rs`)
 

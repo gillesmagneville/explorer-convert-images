@@ -40,9 +40,10 @@ conversion, mêmes textes, derrière une fenêtre Windows native.
 
 * **Sans détour** — pas d'application à lancer, pas de ligne de commande,
   pas d'import : la conversion est dans le menu contextuel de vos fichiers.
-* **Tout ce que vous avez sous la main** — RAW de nombreux appareils, JPEG,
-  PNG, TIFF, BMP, GIF, WebP, même mélangés dans un seul dossier : le format
-  de chaque fichier est détecté, même quand l'extension manque ou trompe.
+* **Tout ce que vous avez sous la main** — RAW de nombreux appareils (voir
+  « Compatibilité RAW »), JPEG, PNG, TIFF, BMP, GIF, WebP, même mélangés
+  dans un seul dossier : le format de chaque fichier est détecté, même quand
+  l'extension manque ou trompe.
 * **Votre qualité, intacte** — pleine résolution, jamais de recadrage ni de
   redimensionnement ; PNG, TIFF, BMP et WebP sont réellement sans perte
   (transparence et profondeur 16 bits conservées). Pour un RAW, cela
@@ -61,6 +62,13 @@ conversion, mêmes textes, derrière une fenêtre Windows native.
   utilisateur, sans droits d'administrateur ; rien d'autre à installer ;
   licence GPL-3.0.
 
+| Vous avez | Vous voulez | Il suffit de |
+|---|---|---|
+| Un dossier de RAW après un shooting | Des JPEG à partager | le sélectionner, choisir JPEG (le choix par défaut) |
+| Des RAW à passer dans un autre logiciel | Une image sans perte | choisir TIFF ou PNG (16 bits), et garder le RAW |
+| Un dossier qui mélange CR2, TIFF et PNG | Un seul format partout | tout sélectionner, choisir le format |
+| Des BMP ou PNG volumineux | Des fichiers plus compacts, sans perte | choisir WebP sans perte |
+
 ## Installation
 
 Nécessite Windows 10 (version 1809 ou ultérieure) ou Windows 11, en
@@ -78,7 +86,9 @@ d'administrateur.
 > **« Windows a protégé votre ordinateur »** (SmartScreen). C'est normal
 > pour un petit projet libre non signé — ce n'est pas le signe d'un logiciel
 > malveillant. Cliquez sur **Informations complémentaires**, puis sur
-> **Exécuter quand même**.
+> **Exécuter quand même**. Pour la même raison, votre navigateur peut
+> signaler le téléchargement ; la vérification ci-dessous vous dit si le
+> fichier est bien celui qui a été publié.
 
 Pour vérifier votre téléchargement, chaque installeur est publié avec son
 propre fichier `.sha256`. Dans PowerShell, dans le dossier du
@@ -95,6 +105,28 @@ Pour désinstaller : **Paramètres > Applications > Applications
 installées**, puis `explorer-convert-images` > **Désinstaller**. L'entrée de
 menu et tous les fichiers du programme sont supprimés.
 
+### Ce que fait l'installeur
+
+* Il copie les trois programmes (voir « Comment c'est fait ») dans
+  `%LOCALAPPDATA%\Programs\explorer-convert-images`, ajoute au menu Démarrer
+  un raccourci **Convertir les images**, et inscrit le programme dans
+  **Paramètres > Applications** pour qu'on puisse le désinstaller de là.
+* Il ajoute l'entrée de menu au registre, **pour l'utilisateur courant
+  seulement** (`HKEY_CURRENT_USER`) : sur les fichiers image, sur les
+  dossiers et sur le fond d'un dossier. Les types de fichiers gardent le
+  programme auquel ils sont associés : l'entrée ne devient jamais ce que
+  fait un double-clic.
+* Installer une version plus récente par-dessus une plus ancienne est une
+  mise à jour : la version précédente est d'abord supprimée, entrée de menu
+  comprise.
+* Le désinstalleur supprime tous les fichiers et toutes les entrées de
+  registre du programme, et uniquement ceux-là : les entrées d'autres
+  programmes ne sont jamais touchées.
+* Rien d'autre n'a besoin d'être présent sur votre machine : les
+  environnements d'exécution .NET et Windows App SDK sont fournis avec le
+  programme, LibRaw est intégrée au moteur, et les bibliothèques d'exécution
+  C et C++ sont liées statiquement.
+
 ## Utilisation
 
 Clic droit sur une sélection (fichiers et/ou dossiers), sur un dossier, ou
@@ -102,7 +134,10 @@ sur le fond d'un dossier ouvert → **Convertir les images…**.
 
 * **Sous Windows 11**, l'entrée se trouve dans le menu classique : clic
   droit, puis **Afficher plus d'options** (ou Maj + clic droit, ou
-  Maj+F10).
+  Maj+F10). Apparaître dans le menu de premier niveau de Windows 11 demande
+  un paquet signé, ce que le projet ne fournit pas encore (voir
+  `PROJECT_CONTEXT.fr.md`). Windows 10 n'a que le menu classique : l'entrée
+  se trouve donc dans le menu qui s'affiche tout de suite.
 * Le raccourci **Convertir les images** du menu Démarrer ouvre la même
   fenêtre sans rien de sélectionné ; elle propose alors de choisir un
   dossier à convertir.
@@ -110,7 +145,18 @@ sur le fond d'un dossier ouvert → **Convertir les images…**.
 La fenêtre montre ce qui a été trouvé (sous-dossiers compris), permet de
 choisir le format de destination, la qualité JPEG, ce qu'il faut faire quand
 un fichier existe déjà et le dossier de destination, puis convertit en
-journalisant chaque fichier.
+journalisant chaque fichier. Par défaut, le dossier de destination est le
+dossier le plus profond qui contient toute la sélection. Fermer la fenêtre
+pendant une conversion demande confirmation ; les fichiers déjà convertis
+restent où ils sont.
+
+La fenêtre peut aussi se lancer à la main, en dehors de l'Explorateur, avec
+des fichiers et/ou des dossiers en arguments :
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\explorer-convert-images\ExplorerConvertImages.exe" `
+    "$HOME\Pictures\img001.cr2" "$HOME\Pictures\img002.jpg"
+```
 
 ## Langues
 
@@ -131,26 +177,99 @@ d'affichage) ; pour toute autre langue, l'interface s'affiche en anglais.
 * Les messages d'erreur produits par le moteur lui-même sont traduits ; le
   texte renvoyé par les bibliothèques tierces (par exemple le détail d'une
   erreur de `rawloader` ou de LibRaw) reste en anglais.
+* Le moteur en ligne de commande (`convert-images-engine.exe`, son aide et
+  ses messages) est en anglais.
 
 ## Formats
 
 | | Formats |
 |---|---|
-| **Sources** | RAW (extensions reconnues : CR2/CR3, NEF/NRW, ARW/SRF/SR2, DNG, ORF, RAF, RW2, PEF, SRW, X3F, 3FR, RWL, GPR…), JPEG, PNG, TIFF, BMP, GIF, WebP |
+| **Sources** | RAW (extensions reconnues : CR2/CR3, NEF/NRW, ARW/SRF/SR2, DNG, ORF, RAF, RW2, PEF, SRW, X3F, 3FR, RWL, GPR… ; voir « Compatibilité RAW »), JPEG, PNG, TIFF, BMP, GIF, WebP |
 | **Destinations** | JPEG (qualité réglable, 100 par défaut), PNG, TIFF (non compressé), BMP, WebP sans perte (VP8L) |
 
-PNG, TIFF, BMP et WebP sont **réellement sans perte** (canal alpha et
-16 bits compris). Le JPEG reste un format avec perte par nature — une limite
-du format lui-même, pas de cet outil. La détection se fait par l'extension,
-puis par l'analyse du contenu, avec en dernier recours une vraie tentative
-de décodage. Les fichiers RAW sont décodés en pleine résolution (zone active
-du capteur).
+PNG, TIFF, BMP et WebP sont **authentiquement sans perte**, vérifié par
+comparaison pixel à pixel lors de la validation du moteur dans
+nautilus-convert-images (canal alpha et 16 bits compris). JPEG reste par
+nature un format avec perte — limite du format lui-même, pas de cet outil,
+et jamais présentée comme autre chose. La détection se fait par extension,
+puis par analyse du contenu, avec en dernier recours une tentative de
+décodage réel. Les RAW sont décodés à pleine résolution (zone active du
+capteur).
 
-Le moteur est celui de nautilus-convert-images : ce qu'il lit, et avec quel
-résultat, est décrit dans la section
-[« Compatibilité RAW »](https://github.com/gillesmagneville/nautilus-convert-images/blob/main/README.fr.md)
-de ce projet. `engine/UPSTREAM.fr.md` indique quelle version ce dépôt
-contient et ce qui a été modifié pour Windows.
+Le moteur, le gestionnaire de menu et la fenêtre sont découplés (voir
+`ARCHITECTURE.fr.md`) : le moteur (`convert-images-engine.exe`) est un
+programme autonome en ligne de commande, utilisable indépendamment de
+l'Explorateur ou de la fenêtre (voir « Ligne de commande »).
+
+Le moteur est celui de nautilus-convert-images, adapté pour fonctionner sous
+Windows : `engine/UPSTREAM.fr.md` indique quelle version ce dépôt contient et
+ce qui a été modifié.
+
+## Compatibilité RAW
+
+Reconnaître un fichier comme RAW (par son extension) ne garantit pas de
+pouvoir le décoder : cela dépend de l'appareil.
+
+* **Une conversion, pas un développement** — pour un fichier RAW en
+  entrée, le rendu est celui des données brutes du boîtier : balance des
+  blancs de l'appareil et conversion en sRGB, sans retouche (pas de
+  correction d'objectif — vignetage, distorsion —, pas de netteté ni de
+  réduction de bruit, pas de réglage créatif d'exposition ou de contraste).
+  Ce n'est donc ni le rendu du JPEG du boîtier (plus contrasté, coins
+  corrigés, parfois recadré en 16:9 alors que l'image convertie couvre tout
+  le capteur), ni celui d'un logiciel de développement comme darktable ou
+  RawTherapee, qui ajoutent leurs propres réglages par défaut. Pour un
+  résultat travaillé, convertissez en TIFF ou PNG 16 bits et retouchez dans
+  un tel logiciel.
+* **Ordre de décodage** — `rawloader` d'abord ; s'il ne connaît pas le
+  boîtier, repli automatique sur [LibRaw](https://www.libraw.org/),
+  embarquée dans le programme. Si les deux échouent, l'erreur est affichée
+  pour ce fichier et le lot continue avec le suivant.
+* **Testé en usage réel** — uniquement des fichiers Sony ARW, dont ceux du
+  RX100 VI (absent de la base de `rawloader`, donc décodé par le repli),
+  vérifiés par l'auteur avec nautilus-convert-images, qui a le même moteur.
+  Canon, Nikon, Fujifilm, Olympus, Panasonic, Pentax, Sigma, DNG… sont pris
+  en charge d'après ce qu'annoncent `rawloader` et LibRaw, mais n'ont pas
+  été vérifiés par l'auteur ; la fidélité des couleurs peut varier d'un
+  boîtier à l'autre.
+* **Limites du repli LibRaw** — il est compilé sans les bibliothèques
+  facultatives : il ne lit ni les DNG compressés avec perte (JPEG) ou en
+  virgule flottante compressée (deflate), ni les Sigma Foveon (X3F ;
+  `rawloader` en lit certains). Le CR3 de Canon n'existe pas dans
+  `rawloader` : il dépend donc entièrement du repli, et n'a pas été testé.
+* **Deux décodeurs, deux rendus** — le décodeur principal (`imagepipe`)
+  applique une courbe de tons de base légère pour passer du signal linéaire
+  du capteur à un aspect naturel ; le repli LibRaw n'en applique pas et ses
+  images tendent à paraître plus sombres. Un lot qui mêle des boîtiers
+  traités par l'un et par l'autre peut donc présenter des luminosités un
+  peu différentes.
+* **Chemins accentués ou très longs** — sous Windows, le moteur donne le
+  fichier à LibRaw depuis la mémoire : un chemin contenant des accents ou
+  de plus de 260 caractères est lu comme n'importe quel autre.
+* **Fichier refusé ou aux couleurs douteuses ?** Signalez-le via les
+  [issues](https://github.com/gillesmagneville/explorer-convert-images/issues)
+  en indiquant le modèle d'appareil.
+
+## Ligne de commande
+
+Le moteur peut aussi s'utiliser seul, depuis une ligne de commande. Il écrit
+un objet JSON par ligne sur sa sortie standard (détection, puis progression
+de la conversion), ce qui permet à la fenêtre de le suivre :
+
+```powershell
+$engine = "$env:LOCALAPPDATA\Programs\explorer-convert-images\convert-images-engine.exe"
+& $engine formats
+& $engine detect --recursive "$HOME\Pictures"
+& $engine convert --recursive "$HOME\Pictures" `
+    --output-dir "$HOME\Pictures\converted" --format png
+```
+
+`--format` vaut `jpeg`, `png`, `tiff`, `bmp` ou `webp` ; `--quality` (1–100)
+s'applique au JPEG ; `--on-collision` vaut `skip`, `rename` (par défaut) ou
+`overwrite` ; `--threads` limite le nombre de cœurs utilisés ; `--input-list
+FICHIER` ajoute les chemins listés dans un fichier, un par ligne. `&
+$engine --help` montre tout. La forme exacte des événements est décrite dans
+`ARCHITECTURE.fr.md`.
 
 ## Comment c'est fait
 
@@ -162,6 +281,40 @@ Trois programmes, installés dans le même dossier (voir
 | `explorer-convert-images-verb.exe` | Reçoit la sélection depuis le menu de l'Explorateur et ouvre la fenêtre dessus | Rust |
 | `ExplorerConvertImages.exe` | La fenêtre (WinUI 3, l'apparence native de Windows 11) | C# |
 | `convert-images-engine.exe` | Détecte les formats et convertit ; utilisable seul en ligne de commande | Rust |
+
+L'entrée de menu est un verbe COM servi par le gestionnaire de menu, un
+programme séparé lancé à la demande : l'Explorateur ne fait que lui confier
+la sélection (toute la sélection, en un seul appel, quelle que soit sa
+taille, au moyen d'un fichier) et n'est jamais mis en attente. Si quelque
+chose se passe mal, les programmes écrivent ce qui est arrivé dans
+`explorer-convert-images-verb.log` et `explorer-convert-images-app.log`,
+dans le dossier temporaire de votre utilisateur (tapez `%TEMP%` dans la
+barre d'adresse de l'Explorateur) : joignez-les à votre signalement de
+problème.
+
+## Mise en place
+
+Pour récupérer les sources :
+
+```bash
+git clone https://github.com/gillesmagneville/explorer-convert-images.git
+cd explorer-convert-images
+```
+
+Ce dont vous avez besoin dépend de ce que vous voulez faire (détails, avec
+les commandes : `CONTRIBUTING.fr.md`) :
+
+* **Tests du moteur et du gestionnaire de menu** — sous Linux : Rust (avec
+  `rustup` : `rust-toolchain.toml` choisit la version) et un compilateur
+  C/C++, nécessaire pour construire la LibRaw intégrée au moteur. La
+  première construction est plus longue (quelques minutes) ; les suivantes
+  sont incrémentales.
+* **Tests de la logique de la fenêtre** — le SDK .NET 10, sous Linux comme
+  sous Windows.
+* **La fenêtre elle-même** — Windows et le SDK .NET 10.
+* **Les tests du gestionnaire de menu propres à Windows, et `selftest`** —
+  Windows et Rust.
+* **L'installeur** — Linux, avec `nsis` et les compilateurs MinGW-w64.
 
 ## Construction
 
@@ -186,11 +339,17 @@ rustup target add x86_64-pc-windows-gnu
 dotnet publish app/ExplorerConvertImages -c Release -r win-x64 -p:Platform=x64 -o DOSSIER
 ```
 
-Chaque exécution du workflow conserve aussi, dans l'artefact
+`build-installer.sh` construit les deux programmes Rust, les rassemble avec
+la fenêtre dans `dist/explorer-convert-images/`, puis construit l'installeur
+avec NSIS ; le résultat est `dist/explorer-convert-images-X.Y.Z-setup.exe` et
+son fichier `.sha256`. `--no-rust-build` réutilise les programmes Rust déjà
+construits. Chaque exécution du workflow conserve aussi, dans l'artefact
 `explorer-convert-images-folder`, le dossier complet qu'installe
 l'installeur (la fenêtre et les deux programmes Rust) ;
 `./build-installer.sh --dist DOSSIER` transforme un tel dossier en
-installeur. Détails et variantes : `CONTRIBUTING.fr.md`.
+installeur, ce que fait le workflow. Le script vérifie que tout ce dont
+l'installeur a besoin est présent, et s'arrête avec un message sinon.
+Détails et variantes : `CONTRIBUTING.fr.md`.
 
 ### Publier une version
 
@@ -198,11 +357,19 @@ Fixez la version (`tools/set-version.sh X.Y.Z`), donnez à la version sa
 section dans `CHANGELOG.md` et `CHANGELOG.fr.md`, validez, puis poussez une
 étiquette `vX.Y.Z`. Le workflow construit l'installeur et prépare une
 version en **brouillon** qui le contient avec son fichier `.sha256`, les
-notes étant tirées des deux journaux (anglais d'abord, français ensuite).
-Rien n'est public tant que vous ne publiez pas le brouillon. Pas à pas :
-`CONTRIBUTING.fr.md`.
+notes étant tirées des deux journaux (anglais d'abord, français ensuite). Il
+refuse de le faire si l'étiquette et le fichier `VERSION` ne concordent pas,
+ou s'il manque la section dans un journal. Rien n'est public tant que vous
+ne publiez pas le brouillon. Pas à pas : `CONTRIBUTING.fr.md`.
 
 ## Tests
+
+Le moteur est celui de nautilus-convert-images, avec ses tests unitaires
+inchangés. Il y a été validé par comparaison pixel à pixel
+(PNG/TIFF/BMP/WebP identiques bit à bit à la source, y compris avec canal
+alpha et profondeur 16 bits ; JPEG avec un écart minime et attendu à
+qualité 100). Le repli LibRaw est couvert par des tests unitaires sur un DNG
+synthétique.
 
 ```bash
 # Rust : le moteur et la partie du gestionnaire de menu indépendante du système
@@ -213,14 +380,22 @@ cargo build --release -p convert-images-engine
 dotnet run -c Release --project app/ConvertImages.Core.Tests
 ```
 
-Les deux s'exécutent sous Linux comme sous Windows. Le workflow exécute en
-plus, sur un vrai Windows : les tests du gestionnaire de menu propres à
-Windows (son objet COM), les tests C# avec le moteur Windows, et `selftest`,
-qui lance la fenêtre construite puis parcourt toute la chaîne —
-gestionnaire de menu, puis fenêtre — comme le fait l'Explorateur de
-fichiers. `selftest` est un outil de développement (voir
-`CONTRIBUTING.fr.md`) : lancé sans argument sur un Windows où le programme
-est installé, il vérifie de la même façon la chaîne installée.
+Les deux s'exécutent sous Linux comme sous Windows. Les tests vérifient
+aussi ce qui est écrit à deux endroits (version, noms des programmes,
+extensions de fichier de l'entrée de menu, textes de la fenêtre et du
+moteur) et les traductions : catalogues complets, champs de substitution
+identiques au texte source. Les tests qui ont besoin d'un outil absent ou
+d'un moteur construit sont ignorés, pas en échec.
+
+Le workflow exécute en plus, sur un vrai Windows : les tests du
+gestionnaire de menu propres à Windows (son objet COM), les tests C# avec le
+moteur Windows, et `selftest`, qui lance la fenêtre construite puis
+parcourt toute la chaîne — gestionnaire de menu, puis fenêtre — comme le
+fait l'Explorateur de fichiers. `selftest` est un outil de développement
+(voir `CONTRIBUTING.fr.md`) : lancé sans argument sur un Windows où le
+programme est installé, il vérifie de la même façon la chaîne installée. Les
+programmes Windows sont aussi essayés sous Wine, sur Linux
+(`CONTRIBUTING.fr.md`).
 
 ## Note sur la chaîne de compilation
 
